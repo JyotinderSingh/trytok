@@ -35,7 +35,7 @@ func TestE2ECodeRun(t *testing.T) {
 	defer compilerServer.Terminate(ctx)
 
 	// Send a POST request to the server
-	url := "http://localhost:6543/execute"
+	url := "http://localhost:6543"
 	code := `
 	// Game initialization
 	var currentRoom = "entry";

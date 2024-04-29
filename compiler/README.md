@@ -1,6 +1,6 @@
 # Compiler Server
 
-Runs a lightweight server process inside a Docker container that compiles code and returns the output.
+A Docker container with a lightweight server that compiles Tok code and returns the output.
 
 ## Build the docker image
 
