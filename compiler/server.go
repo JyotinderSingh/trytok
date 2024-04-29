@@ -16,7 +16,7 @@ func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write the code to a temp file
-	tmpFile, err := os.CreateTemp("", "code-*.cpp")
+	tmpFile, err := os.CreateTemp("", "code-*.tok")
 	if err != nil {
 		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
 		return
@@ -34,6 +34,9 @@ func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
 
 	// Write the output back to the client
 	w.Write(output)
+
+	// Delete the temp file
+	os.Remove(tmpFile.Name())
 }
 
 func main() {
