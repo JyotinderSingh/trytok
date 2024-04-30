@@ -37,7 +37,7 @@ func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
 	cmd := exec.Command("docker", "run", "--platform", "linux/x86_64", "--rm", "-i",
 		"-v", absPath+":"+absPath, "jyotindersingh/ctok",
 		"/ctok", absPath)
-	log.Println("Running command: ", cmd.String())
+	log.Println("Running command: ", cmd.String(), "; with code: ", string(code))
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		http.Error(w, "Compilation or execution failed: "+string(output), http.StatusInternalServerError)
