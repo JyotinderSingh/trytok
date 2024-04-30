@@ -6,9 +6,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/JyotinderSingh/trytok/pkg/docker"
-	"github.com/docker/docker/api/types/container"
 )
 
 // ExecuteCode handles the /execute endpoint.
@@ -26,19 +23,10 @@ func ExecuteCode(w http.ResponseWriter, r *http.Request) {
 
 	code := string(body) // Assume the body contains the code directly.
 
-	// Container setup (assuming docker is some package managing Docker operations)
-	containerId, cli, err := docker.CreateContainer()
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to create container: %v", err), http.StatusInternalServerError)
-		return
-	}
-	defer cli.ContainerStop(r.Context(), containerId, container.StopOptions{})     // Assuming nil is a valid option
-	defer cli.ContainerRemove(r.Context(), containerId, container.RemoveOptions{}) // Assuming nil is a valid option
-
 	// Adjusted the URL if the service is in another container
-	req, err := http.NewRequest("POST", "http://localhost:5500", bytes.NewBufferString(code))
+	req, err := http.NewRequest("POST", "http://code-execution-service:8080", bytes.NewBufferString(code))
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to create request to container: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to create request to code execution service: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -46,7 +34,7 @@ func ExecuteCode(w http.ResponseWriter, r *http.Request) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to send request to container: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to send request to code execution service: %v", err), http.StatusInternalServerError)
 		return
 	}
 

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: code-execution-deployment
+spec:
+  replicas: 3 # Number of pods to run
+  selector:
+    matchLabels:
+      app: code-execution
+  template:
+    metadata:
+      labels:
+        app: code-execution
+    spec:
+      containers:
+        - name: code-execution
+          image: jyotindersingh/compiler-server
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: "512Mi"
