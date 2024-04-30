@@ -1,18 +1,20 @@
 # TryTok: Remote Code Execution Engine for Tok
 
-TryTok is a remote code execution engine for a toy programming language that I built, called [Tok](https://github.com/JyotinderSingh/ctok/tree/master).
+TryTok is a scalable remote code execution engine for a toy programming language that I built, called [Tok](https://github.com/JyotinderSingh/ctok/tree/master).
 
 ## Architecture
 
 ![Architecture](./architecture.png)
 
-The architecture of TryTok is simple. It consists of two main components:
+TryTok is designed for simplicity and scalability. It consists of two main components:
 
-1. **Coordinator**: The coordinator is responsible for coordinating the execution of code. It accepts code from the user, sends it to one of the code Executors for execution, and returns the result to the user.
+1. **Coordinator**: The Coordinator is responsible for managing the execution of code. It serves as the primary interface for users, accepting code submissions, delegating them to available Executors for processing, and delivering the results back to the users. This centralized approach prevents Executors from directly accessing databases or external services, which can cause performance bottlenecks. Moreover, the Coordinator should be treated as the component which incorporates operational logic such as authentication, rate limiting, and database consultations.
 
-1. **Code Executor**: The code executor executes the code that is sent to it by the Coordinator. It is a stateless component that can be scaled horizontally to handle multiple requests. The executor internally launches a lightweight container to execute code for each request to ensure isolation.
+1. **Code Executor**: The code executor executes the code that is sent to it by the Coordinator. It is a stateless component that can be scaled horizontally to handle multiple requests.
 
-We use kubernetes to deploy these components and maintain multiple replicas of the Code Executor.
+### Isolation and Resource Management
+
+Each code execution request is handled by a distinct pod within a Kubernetes cluster. The request is processed in a dedicated lightweight container, approximately 8MB in size, to maintain isolation and security. These containers are resource-restricted to prevent any single request from monopolizing node resources, ensuring fair allocation and consistent performance across multiple requests. Post-execution, the container is terminated to free up resources.
 
 ## Local Setup
 
