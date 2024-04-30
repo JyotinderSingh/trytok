@@ -6,11 +6,11 @@ TryTok is a remote code execution engine for a toy programming language that I b
 
 The architecture of TryTok is simple. It consists of two main components:
 
-1. **Coordinator**: This component is responsible for coordinating the execution of code. It accepts code from the user, sends it to the Code Executor for execution, and returns the result to the user.
+1. **Coordinator**: This component is responsible for coordinating the execution of code. It accepts code from the user, sends it to the Code Executors for execution, and returns the result to the user.
 
-1. **Code Executor**: This component is responsible for executing the code that is sent to it. It is a simple REST API that accepts code and executes it.
+1. **Code Executor**: This component is responsible for executing the code that is sent to it. It is a simple REST API that accepts code and executes it. We maintain multiple replicas of the Code Executor to handle the load. Each replica internally spins up a docker container to execute the code for each request.
 
-We use kubernetes to deploy these components, and maintain multiple replicas of the Code Executor to handle the load.
+We use kubernetes to deploy these components, and maintain multiple replicas of the Code Executor.
 
 ## Local Setup
 
