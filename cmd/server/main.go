@@ -9,17 +9,22 @@ import (
 	"time"
 )
 
+const (
+	serverAddress           = ":8080"
+	codeExecutionServiceURL = "http://code-execution-service:8080"
+	requestTimeout          = 10 * time.Second
+	contentType             = "text/plain"
+)
+
 func main() {
-	http.HandleFunc("/execute", ExecuteCode)
-	log.Println("Server started on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	http.HandleFunc("/execute", executeCodeHandler)
+	log.Println("Server started on", serverAddress)
+	log.Fatal(http.ListenAndServe(serverAddress, nil))
 }
 
-// ExecuteCode handles the /execute endpoint.
-func ExecuteCode(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+// executeCodeHandler handles the /execute endpoint.
+func executeCodeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST method is accepted", http.StatusMethodNotAllowed)
 		return
 	}
@@ -30,28 +35,34 @@ func ExecuteCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	code := string(body) // Assume the body contains the code directly.
-
-	req, err := http.NewRequest("POST", "http://code-execution-service:8080", bytes.NewBufferString(code))
+	response, err := executeCode(body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to create request to code execution service: %v", err), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	req.Header.Set("Content-Type", "text/plain")
-	httpClient := &http.Client{Timeout: 10 * time.Second}
+	fmt.Fprintf(w, "Output: %s", response)
+}
+
+// executeCode sends the code to the code execution service and returns the output.
+func executeCode(code []byte) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodPost, codeExecutionServiceURL, bytes.NewBuffer(code))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request to code execution service: %v", err)
+	}
+
+	req.Header.Set("Content-Type", contentType)
+	httpClient := &http.Client{Timeout: requestTimeout}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to send request to code execution service: %v", err), http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("failed to send request to code execution service: %v", err)
 	}
-
 	defer resp.Body.Close()
+
 	output, err := io.ReadAll(resp.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to read response body: %v", err), http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
-	fmt.Fprintf(w, "Output: %s", output)
+	return output, nil
 }

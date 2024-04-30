@@ -9,47 +9,60 @@ import (
 	"path/filepath"
 )
 
-func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
-	// Read the code from the request
+const serverPort = ":8080"
+const compilerImage = "jyotindersingh/ctok"
+
+func main() {
+	http.HandleFunc("/", compileAndRunCodeHandler)
+	log.Fatal(http.ListenAndServe(serverPort, nil))
+}
+
+func compileAndRunCodeHandler(w http.ResponseWriter, r *http.Request) {
 	code, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+		handleError(w, "Failed to read request body", err)
 		return
 	}
 
-	// Write the code to a temp file
-	tmpFile, err := os.CreateTemp("", "code-*.tok")
-
+	output, err := compileAndRunCode(code)
 	if err != nil {
-		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
+		handleError(w, "Compilation or execution failed", err)
 		return
 	}
-	os.WriteFile(tmpFile.Name(), code, 0666)
-	defer tmpFile.Close()
+
+	w.Write(output)
+}
+
+func compileAndRunCode(code []byte) ([]byte, error) {
+	tmpFile, err := os.CreateTemp("", "code-*.tok")
+	if err != nil {
+		return nil, err
+	}
 	defer os.Remove(tmpFile.Name())
+
+	if err := os.WriteFile(tmpFile.Name(), code, 0666); err != nil {
+		return nil, err
+	}
 
 	absPath, err := filepath.Abs(tmpFile.Name())
 	if err != nil {
-		http.Error(w, "Failed to get absolute path", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	cmd := exec.Command("docker", "run", "--platform", "linux/x86_64",
 		"--rm", "-i", "-m", "65m", "--cpus", "0.1",
-		"-v", absPath+":"+absPath, "jyotindersingh/ctok",
+		"-v", absPath+":"+absPath, compilerImage,
 		"/ctok", absPath)
-	log.Println("Running command: ", cmd.String(), "; with code: ", string(code))
+	log.Printf("Running command: %s; with code: %s", cmd.String(), code)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		http.Error(w, "Compilation or execution failed: "+string(output), http.StatusInternalServerError)
-		return
+		return output, err
 	}
 
-	// Write the output back to the client
-	w.Write(output)
+	return output, nil
 }
 
-func main() {
-	http.HandleFunc("/", compileAndRunCode)
-	http.ListenAndServe(":8080", nil)
+func handleError(w http.ResponseWriter, msg string, err error) {
+	log.Printf("%s: %v", msg, err)
+	http.Error(w, msg+": "+err.Error(), http.StatusInternalServerError)
 }
