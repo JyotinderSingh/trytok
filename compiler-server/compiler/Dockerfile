@@ -23,9 +23,6 @@ RUN chmod +x /ctok/build/ctok
 # Create an alpine image with the built object
 FROM alpine:latest
 
-# Install libc6-compat if there are minimal dependencies on glibc
-RUN apk --no-cache add libc6-compat
-
 # Set the Current Working Directory inside the container
 WORKDIR /
 
