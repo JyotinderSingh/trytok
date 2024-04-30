@@ -59,6 +59,15 @@ func executeCode(code []byte) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		// Read the response body for additional error information
+		errorMsg, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read error response from execution service: %v", err)
+		}
+		return nil, fmt.Errorf("execution service returned error %d: %s", resp.StatusCode, errorMsg)
+	}
+
 	output, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
