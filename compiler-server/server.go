@@ -45,7 +45,7 @@ func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write the output back to the client
-	w.Write([]byte("Output:" + string(output)))
+	w.Write(output)
 }
 
 func main() {
