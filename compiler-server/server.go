@@ -2,9 +2,11 @@ package main
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
@@ -17,15 +19,25 @@ func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
 
 	// Write the code to a temp file
 	tmpFile, err := os.CreateTemp("", "code-*.tok")
+
 	if err != nil {
 		http.Error(w, "Failed to create temp file", http.StatusInternalServerError)
 		return
 	}
-	defer tmpFile.Close()
 	os.WriteFile(tmpFile.Name(), code, 0666)
+	defer tmpFile.Close()
+	defer os.Remove(tmpFile.Name())
 
-	// Compile and run the code
-	cmd := exec.Command("/ctok/build/ctok", tmpFile.Name())
+	absPath, err := filepath.Abs(tmpFile.Name())
+	if err != nil {
+		http.Error(w, "Failed to get absolute path", http.StatusInternalServerError)
+		return
+	}
+
+	cmd := exec.Command("docker", "run", "--platform", "linux/x86_64", "--rm", "-i",
+		"-v", absPath+":"+absPath, "jyotindersingh/ctok",
+		"/ctok", absPath)
+	log.Println("Running command: ", cmd.String())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		http.Error(w, "Compilation or execution failed: "+string(output), http.StatusInternalServerError)
@@ -33,10 +45,7 @@ func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write the output back to the client
-	w.Write(output)
-
-	// Delete the temp file
-	os.Remove(tmpFile.Name())
+	w.Write([]byte("Output:" + string(output)))
 }
 
 func main() {

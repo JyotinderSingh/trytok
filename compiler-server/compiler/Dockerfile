@@ -1,5 +1,5 @@
 # Use an official base image with C++ and CMake installed
-FROM ubuntu:20.04
+FROM ubuntu:20.04 as builder
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install necessary packages
@@ -15,21 +15,22 @@ RUN apt-get update && apt-get install -y cmake
 RUN git clone https://github.com/JyotinderSingh/ctok.git /ctok && \
     mkdir /ctok/build && \
     cd /ctok/build && \
-    cmake .. && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXE_LINKER_FLAGS="-static" .. && \
     cmake --build .
 
-# Install Go (necessary to run the Go server)
-RUN wget https://golang.org/dl/go1.17.3.linux-amd64.tar.gz && \
-    tar -xzf go1.17.3.linux-amd64.tar.gz && \
-    mv go /usr/local
+RUN chmod +x /ctok/build/ctok
 
-ENV PATH="${PATH}:/usr/local/go/bin"
+# Create an alpine image with the built object
+FROM alpine:latest
 
-# Add the Go server code
-ADD server.go /server.go
+# Install libc6-compat if there are minimal dependencies on glibc
+RUN apk --no-cache add libc6-compat
 
-# Expose the port the server will run on
-EXPOSE 8080
+# Set the Current Working Directory inside the container
+WORKDIR /
 
-# Command to run the Go server
-CMD ["go", "run", "/server.go"]
+# Copy the statically linked binary from the builder stage
+COPY --from=builder /ctok/build/ctok /ctok
+
+# Command to run the binary
+CMD ["/ctok"]

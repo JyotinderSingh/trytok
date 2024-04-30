@@ -24,6 +24,13 @@ func TestE2ECodeRun(t *testing.T) {
 		Image:        "jyotindersingh/compiler-server", // Use your custom image
 		ExposedPorts: []string{"6543:8080/tcp"},
 		WaitingFor:   wait.ForListeningPort("8080/tcp"),
+		Privileged:   true,
+		Mounts: []testcontainers.ContainerMount{
+			{
+				Source: testcontainers.GenericVolumeMountSource{Name: "/var/run/docker.sock"},
+				Target: "/var/run/docker.sock",
+			},
+		},
 	}
 
 	// Start the container
@@ -33,6 +40,8 @@ func TestE2ECodeRun(t *testing.T) {
 	})
 	assert.NoError(t, err, "Failed to start container")
 	defer compilerServer.Terminate(ctx)
+
+	// time.Sleep(1 * time.Minute) // Wait for the server to start
 
 	// Send a POST request to the server
 	url := "http://localhost:6543"
