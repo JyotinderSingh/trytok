@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coordinator-deployment
+spec:
+  replicas: {{ .Values.coordinator.replicas }} # Number of pods.
+  selector:
+    matchLabels:
+      app: coordinator
+  template:
+    metadata:
+      labels:
+        app: coordinator
+    spec:
+      containers:
+        - name: coordinator
+          image: {{ .Values.coordinator.image }}
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: {{ .Values.coordinator.resources.cpu }}
+              memory: {{ .Values.coordinator.resources.memory }}
