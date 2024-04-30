@@ -1,5 +1,9 @@
 # Running the cluster using Helm
 
+```bash
+minikube start
+```
+
 ## Install application using Helm
 
 This will deploy the Kubernetes resources as specified in the templates, with values provided in values.yaml.
