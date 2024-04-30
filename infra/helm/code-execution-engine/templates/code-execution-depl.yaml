@@ -21,3 +21,18 @@ spec:
             limits:
               cpu: {{ .Values.codeExecution.resources.cpu }}
               memory: {{ .Values.codeExecution.resources.memory }}
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            - name: tmp-dir
+              mountPath: /tmp
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: tmp-dir
+          hostPath:
+            path: /tmp

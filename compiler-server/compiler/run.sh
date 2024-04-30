@@ -1,0 +1,1 @@
+docker run --platform linux/x86_64 --rm -i -v ./../../../ctok/sample.tok:/code.tok jyotindersingh/ctok /ctok /code.tok
