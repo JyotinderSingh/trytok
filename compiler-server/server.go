@@ -9,8 +9,11 @@ import (
 	"path/filepath"
 )
 
-const serverPort = ":8080"
-const compilerImage = "jyotindersingh/ctok"
+const (
+	serverPort    = ":8080"
+	compilerImage = "jyotindersingh/ctok"
+	maxCodeSize   = 1024 * 1024 // 1 MB
+)
 
 func main() {
 	http.HandleFunc("/", compileAndRunCodeHandler)
@@ -18,6 +21,11 @@ func main() {
 }
 
 func compileAndRunCodeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.ContentLength > maxCodeSize {
+		http.Error(w, "Code size is too large", http.StatusBadRequest)
+		return
+	}
+
 	code, err := io.ReadAll(r.Body)
 	if err != nil {
 		handleError(w, "Failed to read request body", err)
