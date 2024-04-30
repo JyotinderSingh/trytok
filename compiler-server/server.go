@@ -34,7 +34,8 @@ func compileAndRunCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := exec.Command("docker", "run", "--platform", "linux/x86_64", "--rm", "-i",
+	cmd := exec.Command("docker", "run", "--platform", "linux/x86_64",
+		"--rm", "-i", "-m", "65m", "--cpus", "0.1",
 		"-v", absPath+":"+absPath, "jyotindersingh/ctok",
 		"/ctok", absPath)
 	log.Println("Running command: ", cmd.String(), "; with code: ", string(code))
