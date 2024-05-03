@@ -1,4 +1,4 @@
-FROM golang:1.21-bookworm as builder
+FROM --platform=linux/amd64 golang:1.21-bookworm as builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -16,7 +16,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go-server ./cmd/server/main.go
 
 # Start a new stage from scratch
-FROM alpine:latest  
+FROM --platform=linux/amd64 alpine:latest  
 
 # Set the Current Working Directory inside the container
 WORKDIR /
