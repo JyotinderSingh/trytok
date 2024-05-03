@@ -21,8 +21,6 @@ spec:
             limits:
               cpu: "1"
               memory: "512Mi"
-          securityContext:
-            privileged: true
           volumeMounts:
             - name: docker-sock
               mountPath: /var/run/docker.sock
