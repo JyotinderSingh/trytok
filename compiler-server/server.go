@@ -34,7 +34,7 @@ func compileAndRunCodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	output, err := compileAndRunCode(code)
 	if err != nil {
-		handleError(w, "Compilation or execution failed", err)
+		handleError(w, "Compilation or execution failed: "+string(output), err)
 		return
 	}
 

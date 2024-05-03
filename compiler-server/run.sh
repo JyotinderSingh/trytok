@@ -1,1 +1,1 @@
-docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock:rw -v /tmp:/tmp -p 8080:8080 jyotindersingh/compiler-server
+docker run -v /var/run/docker.sock:/var/run/docker.sock:rw -v /tmp:/tmp -p 8080:8080 jyotindersingh/compiler-server
