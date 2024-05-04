@@ -1,18 +1,21 @@
 package main
 
 import (
+	"context"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 )
 
 const (
-	serverPort    = ":8080"
-	compilerImage = "jyotindersingh/ctok"
-	maxCodeSize   = 1024 * 1024 // 1 MB
+	serverPort       = ":8080"
+	compilerImage    = "jyotindersingh/ctok"
+	maxCodeSize      = 1024 * 1024     // 1 MB
+	executionTimeout = 5 * time.Second // 10 seconds
 )
 
 func main() {
@@ -57,7 +60,11 @@ func compileAndRunCode(code []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	cmd := exec.Command("docker", "run", "--platform", "linux/x86_64",
+	// Create a context with the defined timeout
+	ctx, cancel := context.WithTimeout(context.Background(), executionTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "docker", "run", "--platform", "linux/x86_64",
 		"--rm", "-i", "-m", "65m", "--cpus", "0.1",
 		"-v", absPath+":"+absPath, compilerImage,
 		"/ctok", absPath)
