@@ -15,7 +15,7 @@ const (
 	serverPort       = ":8080"
 	compilerImage    = "jyotindersingh/ctok"
 	maxCodeSize      = 1024 * 1024     // 1 MB
-	executionTimeout = 5 * time.Second // 10 seconds
+	executionTimeout = 5 * time.Second // 5 seconds
 )
 
 func main() {
